@@ -78,10 +78,10 @@ fn keystrokes(keys: &Vec<u8>) {
 
 ## About Conversion
 
-Converting an [ASCII](https://www.ascii-code.com/) character to a Window's [virtual-key-code](https://learn.microsoft.com/en-us/windows/win32/inputdev/virtual-key-codes) requires additional logic because of window's use of the `Shift` modifier to display some characters.
+Converting an [ASCII](https://www.ascii-code.com/) character to a Window's [virtual-key-code](https://learn.microsoft.com/en-us/windows/win32/inputdev/virtual-key-codes) requires additional logic because of Window's use of the `Shift` modifier to display characters.
 
-Uppercase character `[A-Z]` do not have a unique windows virtual key code, instead they depend on the usage of their lowercase variant in conjunction with the shift key.
+Not all ASCII characters have a key representation, meaning not everything can be converted. If conversion fails, `None` is returned.
 
-> For example, to type 'A' using [SendInput](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-sendinput) you must press and hold shift, press the windows virtual key code for 'a' and then release shift.
+> For example, uppercase characters `[A-Z]` do not have a unique virtual key code, instead they depend on the usage of their lowercase variant in conjunction with the shift key. Therefore, to type 'A' you must simulate the shift key down, press the windows virtual key code for 'a' and then release the shift key.
 
-There will always be an even number of `Shift` keys present as every `Shift` press _(down)_ will eventually have a corresponding `Shift` release _(up)_.
+> Note: There will always be an even number of `Shift` keys present in every vector as every `Shift` press _(down)_ will eventually have a corresponding `Shift` release _(up)_. Think of it as curly brackets, opening always has a closing.
