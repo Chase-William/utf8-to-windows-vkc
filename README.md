@@ -1,4 +1,82 @@
-## ASCII to Windows Virtual-Key-Code
+![in-use-example](https://github.com/user-attachments/assets/c281a87f-24f4-44ad-8922-f263bbe8c642)
+
+## ASCII to Windows Virtual-Key-Codes
+
+A simple library that converts the following ASCII characters <code>[a-zA-Z0-0&#96;~!@#$%^&*()-_=+[{]}\|;:'",<.>?]</code> into keystrokes for Windows computers with 0 dependencies.
+
+## Example Usage
+
+```rs
+use ascii_to_windows_vkc::AsciiToVkcApi;
+
+fn main() {
+    let api = AsciiToVkcApi::new(); // create api structure
+    // unwrap keystrokes, None if ASCII character was unsupported
+    let r = api.ascii_to_keystrokes("Hello, World!").unwrap();
+    keystrokes(&r); // pass keys
+}
+```
+
+Then define a function using your preferred win32 approach to send keystrokes like below:
+
+```rs
+use std::thread;
+use std::time::Duration;
+use winapi::ctypes::c_int;
+use winapi::um::winuser::{INPUT_u, SendInput, INPUT, INPUT_KEYBOARD, KEYBDINPUT, KEYEVENTF_KEYUP, VK_SHIFT};
+static INPUT_SIZE: c_int = size_of::<INPUT>() as c_int;
+
+/// Example impl using win32's SendInput function
+fn keystrokes(keys: &Vec<u8>) {
+    let len = keys.len();
+    let mut is_shifting= false;
+
+    for i in 0..len { // iter over keys
+        // create windows input union structure
+        let mut input_u: INPUT_u = unsafe { std::mem::zeroed() };
+        let mut dw_flags = 0;
+
+        // check if current key is the shifting key, then toggle
+        if keys[i] as c_int == VK_SHIFT {
+            if is_shifting { // currently shifting, so release
+                is_shifting = false;
+                dw_flags = KEYEVENTF_KEYUP
+            } else { // start shifting
+                is_shifting = true; // Update state that we are now shifting
+            }
+        }
+
+        unsafe {
+            // attach our keystroke information
+            *input_u.ki_mut() = KEYBDINPUT {
+                wVk: keys[i] as u16,
+                wScan: 0,
+                dwFlags: dw_flags,
+                time: 0,
+                dwExtraInfo: 0,
+            };
+        }
+        // create main input structure
+        let mut input = INPUT {
+            type_: INPUT_KEYBOARD,
+            u: input_u
+        };
+
+        unsafe {
+            // Use win32's SendInput to simulate keystroke
+            if SendInput(1, &mut input, INPUT_SIZE) == 0 {
+                print!("At least one keystroke failed to be enqueued.");
+            }
+        }
+
+        // IMPORTANT: Example delay allowing receiving process to handle keystrokes before receiving more
+        thread::sleep(Duration::from_millis(50));
+    }
+}
+```
+
+
+## About Conversion
 
 Converting an [ASCII](https://www.ascii-code.com/) character to a Window's [virtual-key-code](https://learn.microsoft.com/en-us/windows/win32/inputdev/virtual-key-codes) requires additional logic because of window's use of the `Shift` modifier to display some characters.
 
