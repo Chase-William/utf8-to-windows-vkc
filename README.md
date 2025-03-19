@@ -1,8 +1,8 @@
 ![in-use-example](https://github.com/user-attachments/assets/c281a87f-24f4-44ad-8922-f263bbe8c642)
 
-## ASCII to Windows Virtual-Key-Codes
+## Utf-8 to Windows Virtual-Key-Codes
 
-A simple library that converts the following ASCII characters <code>[a-zA-Z0-0&#96;~!@#$%^&*()-_=+[{]}\|;:'",<.>?]</code> into keystrokes for Windows computers with 0 dependencies.
+A simple library that translates the following utf-8/ascii characters <code>[a-zA-Z0-0&#96;~!@#$%^&*()-_=+[{]}\|;:'",<.>?]</code> into keystrokes for Windows computers with 0 dependencies.
 
 ## Example Usage
 
@@ -14,6 +14,14 @@ fn main() {
     // unwrap keystrokes, None if ASCII character was unsupported
     let r = api.ascii_to_keystrokes("Hello, World!").unwrap();
     keystrokes(&r); // pass keys
+}
+
+fn main() {
+    let key_mapper = Utf8KeyMapper::new(); // create api structure
+    // unwrap keystrokes, returns error if map does not exists or invalid character
+    let r = key_mapper.to_keystrokes("Hello, World!").unwrap();
+    // Call your win32 implementation
+    send_keystrokes(&r);
 }
 ```
 
@@ -27,7 +35,7 @@ use winapi::um::winuser::{INPUT_u, SendInput, INPUT, INPUT_KEYBOARD, KEYBDINPUT,
 static INPUT_SIZE: c_int = size_of::<INPUT>() as c_int;
 
 /// Example impl using win32's SendInput function
-fn keystrokes(keys: &Vec<u8>) {
+fn send_keystrokes(keys: &Vec<u8>) {
     let len = keys.len();
     let mut is_shifting= false;
 
@@ -78,10 +86,10 @@ fn keystrokes(keys: &Vec<u8>) {
 
 ## About Conversion
 
-Converting an [ASCII](https://www.ascii-code.com/) character to a Window's [virtual-key-code](https://learn.microsoft.com/en-us/windows/win32/inputdev/virtual-key-codes) requires additional logic because of Window's use of the `Shift` modifier to display characters.
+Converting an [ascii](https://www.ascii-code.com/) character to a Window's [virtual-key-code](https://learn.microsoft.com/en-us/windows/win32/inputdev/virtual-key-codes) requires additional logic because of Window's use of the `shift` modifier to display characters.
 
-Not all ASCII characters have a key representation, meaning not everything can be converted. If conversion fails, `None` is returned.
+Not all ascii characters have a key representation, meaning not everything can be converted. If conversion fails, `Result<T, E>` is returned.
 
 > For example, uppercase characters `[A-Z]` do not have a unique virtual key code, instead they depend on the usage of their lowercase variant in conjunction with the shift key. Therefore, to type 'A' you must simulate the shift key down, press the windows virtual key code for 'a' and then release the shift key.
 
-> Note: There will always be an even number of `Shift` keys present in every vector as every `Shift` press _(down)_ will eventually have a corresponding `Shift` release _(up)_. Think of it as curly brackets, opening always has a closing.
+> Note: There will always be an even number of `shift` keys present in every vector as every `shift` press _(down)_ will eventually have a corresponding `shift` release _(up)_. Think of it as curly brackets, opening always has a closing.

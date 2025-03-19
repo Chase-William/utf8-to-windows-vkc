@@ -3,5 +3,5 @@
 version = 4
 
 [[package]]
-name = "ascii-to-windows-vk"
+name = "utf8-to-windows-vkc"
 version = "0.1.0"

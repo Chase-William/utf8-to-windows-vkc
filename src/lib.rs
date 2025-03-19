@@ -1,4 +1,3 @@
-use std::collections::hash_map::Keys;
 use std::collections::HashMap;
 
 mod ascii {
@@ -23,7 +22,6 @@ mod ascii {
     pub const DOLLAR: u8 = 0x24; // Dollar Sign ($)
     pub const PERCENT: u8 = 0x25; // Percent (%)
     pub const AMPERSAND: u8 = 0x26; // Ampersand (&)
-    pub const SMALL_QUOTE: u8 = 0x27; // Single Quote (')
     pub const LEFT_PAREN: u8 = 0x28; // Left Parenthesis (
     pub const RIGHT_PAREN: u8 = 0x29; // Right Parenthesis )
     pub const ASTERISK: u8 = 0x2A; // Asterisk (*)
@@ -47,18 +45,11 @@ mod ascii {
     pub const VERTICAL_BAR: u8 = 0x7C; // Vertical bar (|)
     pub const LESS_THAN: u8 = 0x3C; // Less than (<)
     pub const GREATER_THAN: u8 = 0x3E; // Greater than (>)
-
-    // Hexadecimal values corresponding to OEM virtual key codes
-    pub const UNDERSCORE: u8 = 0x5F; // ASCII for underscore (_)
     pub const QUESTION_MARK: u8 = 0x3F; // ASCII for question mark (?)
-    pub const GRAVE_ACCENT: u8 = 0x60; // ASCII for grave accent (`)
 }
-
 
 mod vk {
     // A helpful source: http://www.kbdedit.com/manual/low_level_vk_list.html
-    use std::collections::HashMap;
-    use crate::{ascii, vk};
 
     pub const VK_SHIFT: u8 = 0x10; // Shift key
     pub const VK_SPACE: u8 = 0x20; // Space key
@@ -72,37 +63,7 @@ mod vk {
     pub const VK_5: u8 = 0x35; // 5 or %
     pub const VK_6: u8 = 0x36; // 6 or ^
     pub const VK_7: u8 = 0x37; // 7 or &
-    pub const VK_8: u8 = 0x38; // 8 or *
     pub const VK_9: u8 = 0x39; // 9 or (
-
-    // Define constants for A-Z keys and the Shift key
-    // Defining as u8 for now instead of u16 as not supporting extended windows virtual keys
-    pub const VK_A: u8 = 0x41;  // 'A'
-    pub const VK_B: u8 = 0x42;  // 'B'
-    pub const VK_C: u8 = 0x43;  // 'C'
-    pub const VK_D: u8 = 0x44;  // 'D'
-    pub const VK_E: u8 = 0x45;  // 'E'
-    pub const VK_F: u8 = 0x46;  // 'F'
-    pub const VK_G: u8 = 0x47;  // 'G'
-    pub const VK_H: u8 = 0x48;  // 'H'
-    pub const VK_I: u8 = 0x49;  // 'I'
-    pub const VK_J: u8 = 0x4A;  // 'J'
-    pub const VK_K: u8 = 0x4B;  // 'K'
-    pub const VK_L: u8 = 0x4C;  // 'L'
-    pub const VK_M: u8 = 0x4D;  // 'M'
-    pub const VK_N: u8 = 0x4E;  // 'N'
-    pub const VK_O: u8 = 0x4F;  // 'O'
-    pub const VK_P: u8 = 0x50;  // 'P'
-    pub const VK_Q: u8 = 0x51;  // 'Q'
-    pub const VK_R: u8 = 0x52;  // 'R'
-    pub const VK_S: u8 = 0x53;  // 'S'
-    pub const VK_T: u8 = 0x54;  // 'T'
-    pub const VK_U: u8 = 0x55;  // 'U'
-    pub const VK_V: u8 = 0x56;  // 'V'
-    pub const VK_W: u8 = 0x57;  // 'W'
-    pub const VK_X: u8 = 0x58;  // 'X'
-    pub const VK_Y: u8 = 0x59;  // 'Y'
-    pub const VK_Z: u8 = 0x5A;  // 'Z'
 
     pub const VK_MULTIPLY: u8 = 0x6A; // Virtual Key for Multiply (*)
     pub const VK_MINUS: u8 = 0x6D; // Virtual Key for Minus (-)
@@ -118,24 +79,27 @@ mod vk {
     pub const VK_OEM_5: u8 = 0xDC; // OEM 5 - For backslash (\) and pipe (|)
     pub const VK_OEM_6: u8 = 0xDD; // OEM 6 - For right bracket (]) and closing square bracket
     pub const VK_OEM_7: u8 = 0xDE; // OEM 7 - For single quote (') and double quote (")
-    pub const VK_OEM_8: u8 = 0xDF; // OEM 8 - Often used for miscellaneous keys, like a non-specific or unused key
 }
 
 /// The offset in the ASCII character table from [a-z] and [A-Z].
 /// Can be calculated by subtracting the code value of 'a' from 'A'.
 const ASCII_LOWERCASE_TO_UPPERCASE_OFFSET: u8 = 32;
+const MAX_VALID_ASCII_CHAR_SIZE: u8 = 127;
+
+const ASCII_CHAR_NOT_FOUND: &str = "Non ASCII characters found.";
+const NO_MAPPING_KEYSTROKE_FOUND: &str = "No matching keystroke found.";
 
 struct KeyInfo {
     code: u8,
     requires_shift: bool
 }
 
-pub struct AsciiToVkApi {
+pub struct Utf8KeyMapper {
     character_map: HashMap::<u8, KeyInfo>
 }
 
-impl AsciiToVkApi {
-    pub fn new() -> AsciiToVkApi {
+impl Utf8KeyMapper {
+    pub fn new() -> Utf8KeyMapper {
         let mut character_map = HashMap::<u8, KeyInfo>::new();
 
         // Maps that do not require shift key
@@ -145,7 +109,6 @@ impl AsciiToVkApi {
         character_map.insert(ascii::PERIOD, KeyInfo { code: vk::VK_OEM_PERIOD, requires_shift: false });
         character_map.insert(ascii::SLASH, KeyInfo { code: vk::VK_DIVIDE, requires_shift: false });
         character_map.insert(ascii::SPACE, KeyInfo { code: vk::VK_SPACE, requires_shift: false });
-
         character_map.insert(ascii::SEMICOLON, KeyInfo { code: vk::VK_OEM_1, requires_shift: false });
         character_map.insert(ascii::BACKTICK, KeyInfo { code: vk::VK_OEM_3, requires_shift: false });
         character_map.insert(ascii::LEFT_BRACKET, KeyInfo { code: vk::VK_OEM_4, requires_shift: false });
@@ -164,7 +127,6 @@ impl AsciiToVkApi {
         character_map.insert(ascii::AMPERSAND, KeyInfo { code: vk::VK_7, requires_shift: true });
         character_map.insert(ascii::LEFT_PAREN, KeyInfo { code: vk::VK_9, requires_shift: true });
         character_map.insert(ascii::RIGHT_PAREN, KeyInfo { code: vk::VK_0, requires_shift: true });
-
         character_map.insert(ascii::PLUS, KeyInfo { code: vk::VK_OEM_PLUS, requires_shift: true });
         character_map.insert(ascii::COLON, KeyInfo { code: vk::VK_OEM_1, requires_shift: true });
         character_map.insert(ascii::QUESTION_MARK, KeyInfo { code: vk::VK_OEM_2, requires_shift: true });
@@ -176,10 +138,10 @@ impl AsciiToVkApi {
         character_map.insert(ascii::LESS_THAN, KeyInfo { code: vk::VK_OEM_COMMA, requires_shift: true });
         character_map.insert(ascii::GREATER_THAN, KeyInfo { code: vk::VK_OEM_PERIOD, requires_shift: true });
 
-        AsciiToVkApi { character_map }
+        Utf8KeyMapper { character_map }
     }
 
-    pub fn ascii_to_keystrokes(&self, keys: &str) -> Option<Vec::<u8>> {
+    pub fn to_keystrokes(&self, keys: &str) -> Result<Vec::<u8>, &'static str> {
         let characters = keys.as_bytes();
         let length = characters.len();
 
@@ -190,6 +152,10 @@ impl AsciiToVkApi {
         let mut is_shifting = false;
         for i in 0..length {
             char = characters[i];
+
+            if char > MAX_VALID_ASCII_CHAR_SIZE {
+                return Err(ASCII_CHAR_NOT_FOUND)
+            }
 
             // If the char is within [A-Z] push the value on as these values map directly to window's codes
             if char >= ascii::UPPERCASE_A && char <= ascii::UPPERCASE_Z {
@@ -234,14 +200,14 @@ impl AsciiToVkApi {
                 continue
             }
 
-            return None
+            return Err(NO_MAPPING_KEYSTROKE_FOUND)
         }
 
         // Add a trailing shift if needed
         // Occurs when last character as [a-z]
         if is_shifting { keystrokes.push(vk::VK_SHIFT); }
 
-        Some(keystrokes)
+        Ok(keystrokes)
     }
 }
 
@@ -255,11 +221,33 @@ impl AsciiToVkApi {
 mod tests {
     use super::*;
 
-    #[test]
-    fn test_failure_case() {
-        let strokes = AsciiToVkApi::new().ascii_to_keystrokes("¾");
+    // Define constants for A-Z keys and the Shift key
+    // Defining as u8 for now instead of u16 as not supporting extended windows virtual keys
+    pub const VK_A: u8 = 0x41;  // 'A'
+    pub const VK_B: u8 = 0x42;  // 'B'
+    pub const VK_C: u8 = 0x43;  // 'C'
+    pub const VK_Z: u8 = 0x5A;  // 'Z'
+    pub const VK_8: u8 = 0x38; // 8 or *
 
-        assert_eq!(strokes.is_none(), true, "expect this character to not map to a backing key");
+    #[test]
+    fn test_non_valid_character_results_in_error() {
+        let strokes = Utf8KeyMapper::new().to_keystrokes("æ");
+
+        assert_eq!(strokes.is_err(), true, "should contain error from bounds check");
+        assert_eq!(strokes.unwrap_err(), ASCII_CHAR_NOT_FOUND, "character provided exceeds valid ASCII character range");
+    }
+
+    #[test]
+    fn test_character_without_matching_keystroke_results_in_error() {
+        let byte = 0x01; // Start of Header ASCII character with no mapping value
+        let byte_str = std::char::from_u32(byte as u32)
+            .map(|c| c.to_string())
+            .unwrap_or_else(|| String::from("Invalid character"));
+
+        let strokes = Utf8KeyMapper::new().to_keystrokes(&byte_str);
+
+        assert_eq!(strokes.is_err(), true, "should contain error from failed map");
+        assert_eq!(strokes.unwrap_err(), NO_MAPPING_KEYSTROKE_FOUND, "character provided does not map to key with or without shift");
     }
 
     mod alphabetical {
@@ -268,123 +256,123 @@ mod tests {
 
         #[test]
         fn test_lowercase_a() {
-            let strokes = AsciiToVkApi::new().ascii_to_keystrokes("a").unwrap();
+            let strokes = Utf8KeyMapper::new().to_keystrokes("a").unwrap();
 
             assert_eq!(strokes.len(), 1, "incorrect key vector length");
-            assert_eq!(strokes[0], vk::VK_A);
+            assert_eq!(strokes[0], VK_A);
         }
 
         #[test]
         fn test_lowercase_z() {
-            let strokes = AsciiToVkApi::new().ascii_to_keystrokes("z").unwrap();
+            let strokes = Utf8KeyMapper::new().to_keystrokes("z").unwrap();
 
             assert_eq!(strokes.len(), 1, "incorrect key vector length");
-            assert_eq!(strokes[0], vk::VK_Z);
+            assert_eq!(strokes[0], VK_Z);
         }
 
         #[test]
         fn test_uppercase_a() {
-            let strokes = AsciiToVkApi::new().ascii_to_keystrokes("A").unwrap();
+            let strokes = Utf8KeyMapper::new().to_keystrokes("A").unwrap();
 
             assert_eq!(strokes.len(), 3, "incorrect key vector length");
             assert_eq!(strokes[0], vk::VK_SHIFT);
-            assert_eq!(strokes[1], vk::VK_A);
+            assert_eq!(strokes[1], VK_A);
             assert_eq!(strokes[2], vk::VK_SHIFT);
         }
 
         #[test]
         fn test_uppercase_z() {
-            let strokes = AsciiToVkApi::new().ascii_to_keystrokes("Z").unwrap();
+            let strokes = Utf8KeyMapper::new().to_keystrokes("Z").unwrap();
 
             assert_eq!(strokes.len(), 3, "incorrect key vector length");
             assert_eq!(strokes[0], vk::VK_SHIFT);
-            assert_eq!(strokes[1], vk::VK_Z);
+            assert_eq!(strokes[1], VK_Z);
             assert_eq!(strokes[2], vk::VK_SHIFT);
         }
 
         #[test]
         fn test_multiple_lowercases() {
-            let strokes = AsciiToVkApi::new().ascii_to_keystrokes("abc").unwrap();
+            let strokes = Utf8KeyMapper::new().to_keystrokes("abc").unwrap();
 
             assert_eq!(strokes.len(), 3, "incorrect key vector length");
-            assert_eq!(strokes[0], vk::VK_A);
-            assert_eq!(strokes[1], vk::VK_B);
-            assert_eq!(strokes[2], vk::VK_C);
+            assert_eq!(strokes[0], VK_A);
+            assert_eq!(strokes[1], VK_B);
+            assert_eq!(strokes[2], VK_C);
         }
 
         #[test]
         fn test_multiple_uppercases() {
-            let strokes = AsciiToVkApi::new().ascii_to_keystrokes("ABC").unwrap();
+            let strokes = Utf8KeyMapper::new().to_keystrokes("ABC").unwrap();
 
             assert_eq!(strokes.len(), 5, "incorrect key vector length");
             assert_eq!(strokes[0], vk::VK_SHIFT);
-            assert_eq!(strokes[1], vk::VK_A);
-            assert_eq!(strokes[2], vk::VK_B);
-            assert_eq!(strokes[3], vk::VK_C);
+            assert_eq!(strokes[1], VK_A);
+            assert_eq!(strokes[2], VK_B);
+            assert_eq!(strokes[3], VK_C);
             assert_eq!(strokes[4], vk::VK_SHIFT);
         }
 
         #[test]
         fn test_multiple_mixed_cases_v1() {
-            let strokes = AsciiToVkApi::new().ascii_to_keystrokes("aBc").unwrap();
+            let strokes = Utf8KeyMapper::new().to_keystrokes("aBc").unwrap();
 
             assert_eq!(strokes.len(), 5, "incorrect key vector length");
-            assert_eq!(strokes[0], vk::VK_A);
+            assert_eq!(strokes[0], VK_A);
             assert_eq!(strokes[1], vk::VK_SHIFT);
-            assert_eq!(strokes[2], vk::VK_B);
+            assert_eq!(strokes[2], VK_B);
             assert_eq!(strokes[3], vk::VK_SHIFT);
-            assert_eq!(strokes[4], vk::VK_C);
+            assert_eq!(strokes[4], VK_C);
         }
 
         #[test]
         fn test_multiple_mixed_cases_v2() {
-            let strokes = AsciiToVkApi::new().ascii_to_keystrokes("abcABCabc").unwrap();
+            let strokes = Utf8KeyMapper::new().to_keystrokes("abcABCabc").unwrap();
 
             assert_eq!(strokes.len(), 11, "incorrect key vector length");
-            assert_eq!(strokes[0], vk::VK_A);
-            assert_eq!(strokes[1], vk::VK_B);
-            assert_eq!(strokes[2], vk::VK_C);
+            assert_eq!(strokes[0], VK_A);
+            assert_eq!(strokes[1], VK_B);
+            assert_eq!(strokes[2], VK_C);
 
             assert_eq!(strokes[3], vk::VK_SHIFT);
-            assert_eq!(strokes[4], vk::VK_A);
-            assert_eq!(strokes[5], vk::VK_B);
-            assert_eq!(strokes[6], vk::VK_C);
+            assert_eq!(strokes[4], VK_A);
+            assert_eq!(strokes[5], VK_B);
+            assert_eq!(strokes[6], VK_C);
             assert_eq!(strokes[7], vk::VK_SHIFT);
 
-            assert_eq!(strokes[8], vk::VK_A);
-            assert_eq!(strokes[9], vk::VK_B);
-            assert_eq!(strokes[10], vk::VK_C);
+            assert_eq!(strokes[8], VK_A);
+            assert_eq!(strokes[9], VK_B);
+            assert_eq!(strokes[10], VK_C);
         }
 
         #[test]
         fn test_multiple_mixed_cases_v3() {
-            let strokes = AsciiToVkApi::new().ascii_to_keystrokes("ZbcAzCaZc").unwrap();
+            let strokes = Utf8KeyMapper::new().to_keystrokes("ZbcAzCaZc").unwrap();
 
             assert_eq!(strokes.len(), 17, "incorrect key vector length");
             assert_eq!(strokes[0], vk::VK_SHIFT);
-            assert_eq!(strokes[1], vk::VK_Z);
+            assert_eq!(strokes[1], VK_Z);
             assert_eq!(strokes[2], vk::VK_SHIFT);
 
-            assert_eq!(strokes[3], vk::VK_B);
-            assert_eq!(strokes[4], vk::VK_C);
+            assert_eq!(strokes[3], VK_B);
+            assert_eq!(strokes[4], VK_C);
 
             assert_eq!(strokes[5], vk::VK_SHIFT);
-            assert_eq!(strokes[6], vk::VK_A);
+            assert_eq!(strokes[6], VK_A);
             assert_eq!(strokes[7], vk::VK_SHIFT);
 
-            assert_eq!(strokes[8], vk::VK_Z);
+            assert_eq!(strokes[8], VK_Z);
 
             assert_eq!(strokes[9], vk::VK_SHIFT);
-            assert_eq!(strokes[10], vk::VK_C);
+            assert_eq!(strokes[10], VK_C);
             assert_eq!(strokes[11], vk::VK_SHIFT);
 
-            assert_eq!(strokes[12], vk::VK_A);
+            assert_eq!(strokes[12], VK_A);
 
             assert_eq!(strokes[13], vk::VK_SHIFT);
-            assert_eq!(strokes[14], vk::VK_Z);
+            assert_eq!(strokes[14], VK_Z);
             assert_eq!(strokes[15], vk::VK_SHIFT);
 
-            assert_eq!(strokes[16], vk::VK_C);
+            assert_eq!(strokes[16], VK_C);
         }
     }
 
@@ -393,7 +381,7 @@ mod tests {
 
         #[test]
         fn test_number_one() {
-            let strokes = AsciiToVkApi::new().ascii_to_keystrokes("1").unwrap();
+            let strokes = Utf8KeyMapper::new().to_keystrokes("1").unwrap();
 
             assert_eq!(strokes.len(), 1, "incorrect key vector length");
             assert_eq!(strokes[0], vk::VK_1);
@@ -401,7 +389,7 @@ mod tests {
 
         #[test]
         fn test_exclamation_mark() {
-            let strokes = AsciiToVkApi::new().ascii_to_keystrokes("!").unwrap();
+            let strokes = Utf8KeyMapper::new().to_keystrokes("!").unwrap();
 
             assert_eq!(strokes.len(), 3, "incorrect key vector length");
             assert_eq!(strokes[0], vk::VK_SHIFT);
@@ -411,7 +399,7 @@ mod tests {
 
         #[test]
         fn test_number_two() {
-            let strokes = AsciiToVkApi::new().ascii_to_keystrokes("2").unwrap();
+            let strokes = Utf8KeyMapper::new().to_keystrokes("2").unwrap();
 
             assert_eq!(strokes.len(), 1, "incorrect key vector length");
             assert_eq!(strokes[0], vk::VK_2);
@@ -419,7 +407,7 @@ mod tests {
 
         #[test]
         fn test_at_sign() {
-            let strokes = AsciiToVkApi::new().ascii_to_keystrokes("@").unwrap();
+            let strokes = Utf8KeyMapper::new().to_keystrokes("@").unwrap();
 
             assert_eq!(strokes.len(), 3, "incorrect key vector length");
             assert_eq!(strokes[0], vk::VK_SHIFT);
@@ -429,7 +417,7 @@ mod tests {
 
         #[test]
         fn test_number_three() {
-            let strokes = AsciiToVkApi::new().ascii_to_keystrokes("3").unwrap();
+            let strokes = Utf8KeyMapper::new().to_keystrokes("3").unwrap();
 
             assert_eq!(strokes.len(), 1, "incorrect key vector length");
             assert_eq!(strokes[0], vk::VK_3);
@@ -437,7 +425,7 @@ mod tests {
 
         #[test]
         fn test_hash() {
-            let strokes = AsciiToVkApi::new().ascii_to_keystrokes("#").unwrap();
+            let strokes = Utf8KeyMapper::new().to_keystrokes("#").unwrap();
 
             assert_eq!(strokes.len(), 3, "incorrect key vector length");
             assert_eq!(strokes[0], vk::VK_SHIFT);
@@ -447,7 +435,7 @@ mod tests {
 
         #[test]
         fn test_number_four() {
-            let strokes = AsciiToVkApi::new().ascii_to_keystrokes("4").unwrap();
+            let strokes = Utf8KeyMapper::new().to_keystrokes("4").unwrap();
 
             assert_eq!(strokes.len(), 1, "incorrect key vector length");
             assert_eq!(strokes[0], vk::VK_4);
@@ -455,7 +443,7 @@ mod tests {
 
         #[test]
         fn test_dollar_sign() {
-            let strokes = AsciiToVkApi::new().ascii_to_keystrokes("$").unwrap();
+            let strokes = Utf8KeyMapper::new().to_keystrokes("$").unwrap();
 
             assert_eq!(strokes.len(), 3, "incorrect key vector length");
             assert_eq!(strokes[0], vk::VK_SHIFT);
@@ -465,7 +453,7 @@ mod tests {
 
         #[test]
         fn test_number_five() {
-            let strokes = AsciiToVkApi::new().ascii_to_keystrokes("5").unwrap();
+            let strokes = Utf8KeyMapper::new().to_keystrokes("5").unwrap();
 
             assert_eq!(strokes.len(), 1, "incorrect key vector length");
             assert_eq!(strokes[0], vk::VK_5);
@@ -473,7 +461,7 @@ mod tests {
 
         #[test]
         fn test_percent() {
-            let strokes = AsciiToVkApi::new().ascii_to_keystrokes("%").unwrap();
+            let strokes = Utf8KeyMapper::new().to_keystrokes("%").unwrap();
 
             assert_eq!(strokes.len(), 3, "incorrect key vector length");
             assert_eq!(strokes[0], vk::VK_SHIFT);
@@ -483,7 +471,7 @@ mod tests {
 
         #[test]
         fn test_number_six() {
-            let strokes = AsciiToVkApi::new().ascii_to_keystrokes("6").unwrap();
+            let strokes = Utf8KeyMapper::new().to_keystrokes("6").unwrap();
 
             assert_eq!(strokes.len(), 1, "incorrect key vector length");
             assert_eq!(strokes[0], vk::VK_6);
@@ -491,7 +479,7 @@ mod tests {
 
         #[test]
         fn test_caret() {
-            let strokes = AsciiToVkApi::new().ascii_to_keystrokes("^").unwrap();
+            let strokes = Utf8KeyMapper::new().to_keystrokes("^").unwrap();
 
             assert_eq!(strokes.len(), 3, "incorrect key vector length");
             assert_eq!(strokes[0], vk::VK_SHIFT);
@@ -501,7 +489,7 @@ mod tests {
 
         #[test]
         fn test_seven() {
-            let strokes = AsciiToVkApi::new().ascii_to_keystrokes("7").unwrap();
+            let strokes = Utf8KeyMapper::new().to_keystrokes("7").unwrap();
 
             assert_eq!(strokes.len(), 1, "incorrect key vector length");
             assert_eq!(strokes[0], vk::VK_7);
@@ -509,7 +497,7 @@ mod tests {
 
         #[test]
         fn test_ampersand() {
-            let strokes = AsciiToVkApi::new().ascii_to_keystrokes("&").unwrap();
+            let strokes = Utf8KeyMapper::new().to_keystrokes("&").unwrap();
 
             assert_eq!(strokes.len(), 3, "incorrect key vector length");
             assert_eq!(strokes[0], vk::VK_SHIFT);
@@ -519,15 +507,15 @@ mod tests {
 
         #[test]
         fn test_number_eight() {
-            let strokes = AsciiToVkApi::new().ascii_to_keystrokes("8").unwrap();
+            let strokes = Utf8KeyMapper::new().to_keystrokes("8").unwrap();
 
             assert_eq!(strokes.len(), 1, "incorrect key vector length");
-            assert_eq!(strokes[0], vk::VK_8);
+            assert_eq!(strokes[0], VK_8);
         }
 
         #[test]
         fn test_number_9() {
-            let strokes = AsciiToVkApi::new().ascii_to_keystrokes("9").unwrap();
+            let strokes = Utf8KeyMapper::new().to_keystrokes("9").unwrap();
 
             assert_eq!(strokes.len(), 1, "incorrect key vector length");
             assert_eq!(strokes[0], vk::VK_9);
@@ -535,7 +523,7 @@ mod tests {
 
         #[test]
         fn test_left_paren() {
-            let strokes = AsciiToVkApi::new().ascii_to_keystrokes("(").unwrap();
+            let strokes = Utf8KeyMapper::new().to_keystrokes("(").unwrap();
 
             assert_eq!(strokes.len(), 3, "incorrect key vector length");
             assert_eq!(strokes[0], vk::VK_SHIFT);
@@ -545,7 +533,7 @@ mod tests {
 
         #[test]
         fn test_number_zero() {
-            let strokes = AsciiToVkApi::new().ascii_to_keystrokes("0").unwrap();
+            let strokes = Utf8KeyMapper::new().to_keystrokes("0").unwrap();
 
             assert_eq!(strokes.len(), 1, "incorrect key vector length");
             assert_eq!(strokes[0], vk::VK_0);
@@ -553,7 +541,7 @@ mod tests {
 
         #[test]
         fn test_right_paren() {
-            let strokes = AsciiToVkApi::new().ascii_to_keystrokes(")").unwrap();
+            let strokes = Utf8KeyMapper::new().to_keystrokes(")").unwrap();
 
             assert_eq!(strokes.len(), 3, "incorrect key vector length");
             assert_eq!(strokes[0], vk::VK_SHIFT);
@@ -564,7 +552,7 @@ mod tests {
 
     #[test]
     fn test_multiply() {
-        let strokes = AsciiToVkApi::new().ascii_to_keystrokes("*").unwrap();
+        let strokes = Utf8KeyMapper::new().to_keystrokes("*").unwrap();
 
         assert_eq!(strokes.len(), 1, "incorrect key vector length");
         assert_eq!(strokes[0], vk::VK_MULTIPLY);
@@ -572,7 +560,7 @@ mod tests {
 
     #[test]
     fn test_plus() {
-        let strokes = AsciiToVkApi::new().ascii_to_keystrokes("+").unwrap();
+        let strokes = Utf8KeyMapper::new().to_keystrokes("+").unwrap();
 
         assert_eq!(strokes.len(), 3, "incorrect key vector length");
         assert_eq!(strokes[0], vk::VK_SHIFT);
@@ -582,7 +570,7 @@ mod tests {
 
     #[test]
     fn test_minus() {
-        let strokes = AsciiToVkApi::new().ascii_to_keystrokes("-").unwrap();
+        let strokes = Utf8KeyMapper::new().to_keystrokes("-").unwrap();
 
         assert_eq!(strokes.len(), 1, "incorrect key vector length");
         assert_eq!(strokes[0], vk::VK_MINUS);
@@ -590,7 +578,7 @@ mod tests {
 
     #[test]
     fn test_comma() {
-        let strokes = AsciiToVkApi::new().ascii_to_keystrokes(",").unwrap();
+        let strokes = Utf8KeyMapper::new().to_keystrokes(",").unwrap();
 
         assert_eq!(strokes.len(), 1, "incorrect key vector length");
         assert_eq!(strokes[0], vk::VK_OEM_COMMA);
@@ -598,7 +586,7 @@ mod tests {
 
     #[test]
     fn test_divide() {
-        let strokes = AsciiToVkApi::new().ascii_to_keystrokes("/").unwrap();
+        let strokes = Utf8KeyMapper::new().to_keystrokes("/").unwrap();
 
         assert_eq!(strokes.len(), 1, "incorrect key vector length");
         assert_eq!(strokes[0], vk::VK_DIVIDE);
@@ -606,7 +594,7 @@ mod tests {
 
     #[test]
     fn test_period() {
-        let strokes = AsciiToVkApi::new().ascii_to_keystrokes(".").unwrap();
+        let strokes = Utf8KeyMapper::new().to_keystrokes(".").unwrap();
 
         assert_eq!(strokes.len(), 1, "incorrect key vector length");
         assert_eq!(strokes[0], vk::VK_OEM_PERIOD);
@@ -614,7 +602,7 @@ mod tests {
 
     #[test]
     fn test_white_space() {
-        let strokes = AsciiToVkApi::new().ascii_to_keystrokes(" ").unwrap();
+        let strokes = Utf8KeyMapper::new().to_keystrokes(" ").unwrap();
 
         assert_eq!(strokes.len(), 1, "incorrect key vector length");
         assert_eq!(strokes[0], vk::VK_SPACE);
@@ -622,7 +610,7 @@ mod tests {
 
     #[test]
     fn test_semi_colon() {
-        let strokes = AsciiToVkApi::new().ascii_to_keystrokes(";").unwrap();
+        let strokes = Utf8KeyMapper::new().to_keystrokes(";").unwrap();
 
         assert_eq!(strokes.len(), 1, "incorrect key vector length");
         assert_eq!(strokes[0], vk::VK_OEM_1);
@@ -630,7 +618,7 @@ mod tests {
 
     #[test]
     fn test_colon() {
-        let strokes = AsciiToVkApi::new().ascii_to_keystrokes(":").unwrap();
+        let strokes = Utf8KeyMapper::new().to_keystrokes(":").unwrap();
 
         assert_eq!(strokes.len(), 3, "incorrect key vector length");
         assert_eq!(strokes[0], vk::VK_SHIFT);
@@ -640,7 +628,7 @@ mod tests {
 
     #[test]
     fn test_question_mark() {
-        let strokes = AsciiToVkApi::new().ascii_to_keystrokes("?").unwrap();
+        let strokes = Utf8KeyMapper::new().to_keystrokes("?").unwrap();
 
         assert_eq!(strokes.len(), 3, "incorrect key vector length");
         assert_eq!(strokes[0], vk::VK_SHIFT);
@@ -650,7 +638,7 @@ mod tests {
 
     #[test]
     fn test_backtick() {
-        let strokes = AsciiToVkApi::new().ascii_to_keystrokes("`").unwrap();
+        let strokes = Utf8KeyMapper::new().to_keystrokes("`").unwrap();
 
         assert_eq!(strokes.len(), 1, "incorrect key vector length");
         assert_eq!(strokes[0], vk::VK_OEM_3);
@@ -658,7 +646,7 @@ mod tests {
 
     #[test]
     fn test_tilde() {
-        let strokes = AsciiToVkApi::new().ascii_to_keystrokes("~").unwrap();
+        let strokes = Utf8KeyMapper::new().to_keystrokes("~").unwrap();
 
         assert_eq!(strokes.len(), 3, "incorrect key vector length");
         assert_eq!(strokes[0], vk::VK_SHIFT);
@@ -668,7 +656,7 @@ mod tests {
 
     #[test]
     fn test_left_bracket() {
-        let strokes = AsciiToVkApi::new().ascii_to_keystrokes("[").unwrap();
+        let strokes = Utf8KeyMapper::new().to_keystrokes("[").unwrap();
 
         assert_eq!(strokes.len(), 1, "incorrect key vector length");
         assert_eq!(strokes[0], vk::VK_OEM_4);
@@ -676,7 +664,7 @@ mod tests {
 
     #[test]
     fn test_left_curly_bracket() {
-        let strokes = AsciiToVkApi::new().ascii_to_keystrokes("{").unwrap();
+        let strokes = Utf8KeyMapper::new().to_keystrokes("{").unwrap();
 
         assert_eq!(strokes.len(), 3, "incorrect key vector length");
         assert_eq!(strokes[0], vk::VK_SHIFT);
@@ -686,7 +674,7 @@ mod tests {
 
     #[test]
     fn test_backslash() {
-        let strokes = AsciiToVkApi::new().ascii_to_keystrokes("\\").unwrap();
+        let strokes = Utf8KeyMapper::new().to_keystrokes("\\").unwrap();
 
         assert_eq!(strokes.len(), 1, "incorrect key vector length");
         assert_eq!(strokes[0], vk::VK_OEM_5);
@@ -694,7 +682,7 @@ mod tests {
 
     #[test]
     fn test_vertical_bar() {
-        let strokes = AsciiToVkApi::new().ascii_to_keystrokes("|").unwrap();
+        let strokes = Utf8KeyMapper::new().to_keystrokes("|").unwrap();
 
         assert_eq!(strokes.len(), 3, "incorrect key vector length");
         assert_eq!(strokes[0], vk::VK_SHIFT);
@@ -704,7 +692,7 @@ mod tests {
 
     #[test]
     fn test_right_bracket() {
-        let strokes = AsciiToVkApi::new().ascii_to_keystrokes("]").unwrap();
+        let strokes = Utf8KeyMapper::new().to_keystrokes("]").unwrap();
 
         assert_eq!(strokes.len(), 1, "incorrect key vector length");
         assert_eq!(strokes[0], vk::VK_OEM_6);
@@ -712,7 +700,7 @@ mod tests {
 
     #[test]
     fn test_right_curly_bracket() {
-        let strokes = AsciiToVkApi::new().ascii_to_keystrokes("}").unwrap();
+        let strokes = Utf8KeyMapper::new().to_keystrokes("}").unwrap();
 
         assert_eq!(strokes.len(), 3, "incorrect key vector length");
         assert_eq!(strokes[0], vk::VK_SHIFT);
@@ -722,7 +710,7 @@ mod tests {
 
     #[test]
     fn test_single_quote() {
-        let strokes = AsciiToVkApi::new().ascii_to_keystrokes("'").unwrap();
+        let strokes = Utf8KeyMapper::new().to_keystrokes("'").unwrap();
 
         assert_eq!(strokes.len(), 1, "incorrect key vector length");
         assert_eq!(strokes[0], vk::VK_OEM_7);
@@ -730,7 +718,7 @@ mod tests {
 
     #[test]
     fn test_double_quote() {
-        let strokes = AsciiToVkApi::new().ascii_to_keystrokes("\"").unwrap();
+        let strokes = Utf8KeyMapper::new().to_keystrokes("\"").unwrap();
 
         assert_eq!(strokes.len(), 3, "incorrect key vector length");
         assert_eq!(strokes[0], vk::VK_SHIFT);
@@ -740,7 +728,7 @@ mod tests {
 
     #[test]
     fn test_less_than() {
-        let strokes = AsciiToVkApi::new().ascii_to_keystrokes("<").unwrap();
+        let strokes = Utf8KeyMapper::new().to_keystrokes("<").unwrap();
 
         assert_eq!(strokes.len(), 3, "incorrect key vector length");
         assert_eq!(strokes[0], vk::VK_SHIFT);
@@ -750,7 +738,7 @@ mod tests {
 
     #[test]
     fn test_greater_than() {
-        let strokes = AsciiToVkApi::new().ascii_to_keystrokes(">").unwrap();
+        let strokes = Utf8KeyMapper::new().to_keystrokes(">").unwrap();
 
         assert_eq!(strokes.len(), 3, "incorrect key vector length");
         assert_eq!(strokes[0], vk::VK_SHIFT);
@@ -760,7 +748,7 @@ mod tests {
 
     #[test]
     fn test_equal() {
-        let strokes = AsciiToVkApi::new().ascii_to_keystrokes("=").unwrap();
+        let strokes = Utf8KeyMapper::new().to_keystrokes("=").unwrap();
 
         assert_eq!(strokes.len(), 1, "incorrect key vector length");
         assert_eq!(strokes[0], vk::VK_OEM_PLUS);
