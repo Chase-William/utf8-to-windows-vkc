@@ -7,14 +7,7 @@ A simple library that translates the following utf-8/ascii characters <code>[a-z
 ## Example Usage
 
 ```rs
-use ascii_to_windows_vkc::AsciiToVkcApi;
-
-fn main() {
-    let api = AsciiToVkcApi::new(); // create api structure
-    // unwrap keystrokes, None if ASCII character was unsupported
-    let r = api.ascii_to_keystrokes("Hello, World!").unwrap();
-    keystrokes(&r); // pass keys
-}
+use utf8_to_windows_vkc::Utf8KeyMapper;
 
 fn main() {
     let key_mapper = Utf8KeyMapper::new(); // create api structure
