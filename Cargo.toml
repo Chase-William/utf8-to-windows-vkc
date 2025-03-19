@@ -8,3 +8,6 @@ repository = "https://github.com/Chase-William/utf8-to-windows-vkc"
 readme = "README.md"
 keywords = ["win32", "virtual key", "keystroke", "simulate", "key"]
 categories = ["win32-tools"]
+exclude = [
+    ".github/workflows/*"
+]
