@@ -1,5 +1,8 @@
-![in-use-example](https://github.com/user-attachments/assets/c281a87f-24f4-44ad-8922-f263bbe8c642)
+<p align="center">
+    <img src="https://github.com/user-attachments/assets/c281a87f-24f4-44ad-8922-f263bbe8c642" alt="text being typed"/>
+</p>
 
+![badge](https://github.com/Chase-William/utf8-to-windows-vkc/actions/workflows/rust.yml/badge.svg)
 ## Utf-8 to Windows Virtual-Key-Codes
 
 A simple library that translates the following utf-8/ascii characters <code>[a-zA-Z0-0&#96;~!@#$%^&*()-_=+[{]}\|;:'",<.>?]</code> into keystrokes for Windows computers with 0 dependencies.
