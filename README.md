@@ -18,7 +18,7 @@ fn main() {
 }
 ```
 
-Then define a function using your preferred win32 approach to send keystrokes like below:
+Then define a function using your preferred win32 rust library/approach to send keystrokes like below:
 
 ```rs
 use std::thread;
