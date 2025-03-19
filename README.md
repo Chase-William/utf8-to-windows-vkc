@@ -85,7 +85,7 @@ fn send_keystrokes(keys: &Vec<u8>) {
 ```
 
 
-## About Conversion
+## Translation Notes
 
 Translating an [ascii](https://www.ascii-code.com/) character to a Window's [virtual-key-code](https://learn.microsoft.com/en-us/windows/win32/inputdev/virtual-key-codes) requires additional logic because of Window's use of the `shift` key.
 
