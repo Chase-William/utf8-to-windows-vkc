@@ -10,7 +10,7 @@
 [![License](https://img.shields.io/github/license/Chase-William/utf8-to-windows-vkc?color=594ae2&logo=github&style=flat-square)](https://github.com/Chase-William/utf8-to-windows-vkc/blob/main/LICENSE)
 ## Utf-8 String to Windows Virtual Key Codes
 
-A simple library that translates the following utf-8/ascii characters <code>[a-zA-Z0-0&#96;~!@#$%^&*()-_=+[{]}\|;:'",<.>?]</code> into keystrokes for Windows computers with no dependencies.
+A simple library that translates the following utf-8/ascii characters <code>[a-zA-Z0-9&#96;~!@#$%^&*()-_=+[{]}\|;:'",<.>?]</code> into keystrokes for Windows computers with no dependencies.
 
 ## Example Usage
 
