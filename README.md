@@ -27,7 +27,7 @@ use winapi::ctypes::c_int;
 use winapi::um::winuser::{INPUT_u, SendInput, INPUT, INPUT_KEYBOARD, KEYBDINPUT, KEYEVENTF_KEYUP, VK_SHIFT};
 static INPUT_SIZE: c_int = size_of::<INPUT>() as c_int;
 
-/// Example impl using win32's SendInput function
+/// example impl using win32's SendInput function
 fn send_keystrokes(keys: &Vec<u8>) {
     let len = keys.len();
     let mut is_shifting= false;
@@ -43,7 +43,7 @@ fn send_keystrokes(keys: &Vec<u8>) {
                 is_shifting = false;
                 dw_flags = KEYEVENTF_KEYUP
             } else { // start shifting
-                is_shifting = true; // Update state that we are now shifting
+                is_shifting = true; // update state that we are now shifting
             }
         }
 
@@ -79,7 +79,7 @@ fn send_keystrokes(keys: &Vec<u8>) {
 
 ## About Conversion
 
-Converting an [ascii](https://www.ascii-code.com/) character to a Window's [virtual-key-code](https://learn.microsoft.com/en-us/windows/win32/inputdev/virtual-key-codes) requires additional logic because of Window's use of the `shift` modifier to display characters.
+Translating an [ascii](https://www.ascii-code.com/) character to a Window's [virtual-key-code](https://learn.microsoft.com/en-us/windows/win32/inputdev/virtual-key-codes) requires additional logic because of Window's use of the `shift` modifier to display characters.
 
 Not all ascii characters have a key representation, meaning not everything can be converted. If conversion fails, `Result<T, E>` is returned.
 
