@@ -79,9 +79,9 @@ fn send_keystrokes(keys: &Vec<u8>) {
 
 ## About Conversion
 
-Translating an [ascii](https://www.ascii-code.com/) character to a Window's [virtual-key-code](https://learn.microsoft.com/en-us/windows/win32/inputdev/virtual-key-codes) requires additional logic because of Window's use of the `shift` modifier to display characters.
+Translating an [ascii](https://www.ascii-code.com/) character to a Window's [virtual-key-code](https://learn.microsoft.com/en-us/windows/win32/inputdev/virtual-key-codes) requires additional logic because of Window's use of the `shift` key.
 
-Not all ascii characters have a key representation, meaning not everything can be converted. If conversion fails, `Result<T, E>` is returned.
+Not all ascii characters have a key representation, meaning not everything can be translated. If translation fails, `Result<T, E>` is returned.
 
 > For example, uppercase characters `[A-Z]` do not have a unique virtual key code, instead they depend on the usage of their lowercase variant in conjunction with the shift key. Therefore, to type 'A' you must simulate the shift key down, press the windows virtual key code for 'a' and then release the shift key.
 
