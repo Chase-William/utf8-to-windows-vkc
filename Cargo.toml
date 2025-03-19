@@ -2,3 +2,7 @@
 name = "utf8-to-windows-vkc"
 version = "0.1.0"
 edition = "2024"
+license = "MIT"
+description = "Translates utf8/ascii strings into Win32 keystrokes."
+repository = "https://github.com/Chase-William/utf8-to-windows-vkc"
+readme = "README.md"+
