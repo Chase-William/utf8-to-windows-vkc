@@ -2,10 +2,15 @@
     <img src="https://github.com/user-attachments/assets/c281a87f-24f4-44ad-8922-f263bbe8c642" alt="text being typed"/>
 </p>
 
-![badge](https://github.com/Chase-William/utf8-to-windows-vkc/actions/workflows/rust.yml/badge.svg)
-## Utf-8 to Windows Virtual-Key-Codes
+<br/>
+<br/>
 
-A simple library that translates the following utf-8/ascii characters <code>[a-zA-Z0-0&#96;~!@#$%^&*()-_=+[{]}\|;:'",<.>?]</code> into keystrokes for Windows computers with 0 dependencies.
+![Passing Status](https://github.com/Chase-William/utf8-to-windows-vkc/actions/workflows/build.yml/badge.svg)
+![example workflow](https://github.com/Chase-William/utf8-to-windows-vkc/actions/workflows/test.yml/badge.svg)
+[![License](https://img.shields.io/github/license/Chase-William/utf8-to-windows-vkc?color=594ae2&logo=github&style=flat-square)](https://github.com/Chase-William/utf8-to-windows-vkc/blob/main/LICENSE)
+## Utf-8 String to Windows Virtual Key Codes
+
+A simple library that translates the following utf-8/ascii characters <code>[a-zA-Z0-0&#96;~!@#$%^&*()-_=+[{]}\|;:'",<.>?]</code> into keystrokes for Windows computers with no dependencies.
 
 ## Example Usage
 
