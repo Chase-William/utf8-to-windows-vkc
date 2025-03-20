@@ -86,7 +86,7 @@ fn send_keystrokes(keys: &Vec<u8>) {
 
 ## About This Project
 
-This library's goal is to provide useful and simple translations while independent from both [windows](https://crates.io/crates/windows) and [winapi](https://crates.io/crates/winapi). I understand there are tools available in both of these crates that could reduce much of this library's limited logic, but that is against the goal of this project.
+This library's goal is to provide common translations while remaining independent of both the [windows](https://crates.io/crates/windows) and [winapi](https://crates.io/crates/winapi) crates. I understand there are tools available in both of these crates that could reduce much of this library's limited logic, however, that would undermine the objective of this project.
 
 ## Translation Notes
 
