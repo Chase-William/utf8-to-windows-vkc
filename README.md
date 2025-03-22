@@ -17,7 +17,7 @@ A simple library that translates the following utf-8/ascii characters <code>[a-z
 - ✅ Has range checks for incoming character values using `Result<T, E>`
 - ✅ Uses unit testing to ensure mapping validity
 
-**Use this project for mapping keys in small projects with simple uses cases, this is not mean't for large professional and/or multi-languaged projects.**
+**Use this project for mapping keys in small projects with simple uses cases, this is not meant for large professional and/or multi-languaged projects.**
 
 ## Example Usage
 
@@ -28,7 +28,7 @@ fn main() {
         // send keystrokes on successful map
         Ok(keystrokes) => send_keystrokes(&keystrokes),
         // print error on failure
-        Err(err ) => println!("Byte: {}, Error-Code: {:?}", err.byte, err.error_code)
+        Err(err) => println!("Byte: {}, Error-Code: {:?}", err.byte, err.error_code)
     }
 
     // -- OR --
@@ -39,7 +39,7 @@ fn main() {
         // send keystrokes on successful map
         Ok(()) => send_keystrokes(&keystrokes),
         // print error on failure
-        Err(err ) => println!("Byte: {}, Error-Code: {:?}", err.byte, err.error_code)
+        Err(err) => println!("Byte: {}, Error-Code: {:?}", err.byte, err.error_code)
     }
 }
 ```
@@ -106,7 +106,7 @@ fn send_keystrokes(keys: &Vec<u8>) {
 
 This library's goal is to provide common translations while remaining independent of both the [windows](https://crates.io/crates/windows) and [winapi](https://crates.io/crates/winapi) crates. I understand there are tools available in both of these crates that could reduce much of this library's limited logic, however, that would undermine the objective of this project. Moreover, I do not want to create my own bindings to win32 using a _c_ foreign function interface.
 
-This library uses a compile-time map from the [phf](https://docs.rs/phf/latest/phf/).
+This library uses compile-time maps from the [phf](https://docs.rs/phf/latest/phf/) crate.
 
 ## Translation Notes
 
