@@ -9,7 +9,15 @@
 [![License](https://img.shields.io/github/license/Chase-William/utf8-to-windows-vkc?color=594ae2&logo=github&style=flat-square)](https://github.com/Chase-William/utf8-to-windows-vkc/blob/main/LICENSE)
 ## Utf-8 `&str` to Windows Virtual Key Codes
 
-A simple library that translates the following utf-8/ascii characters <code>[a-zA-Z0-9&#96;~!@#$%^&*()-_=+[{]}\|;:'",<.>?]</code> into keystrokes for Windows computers.
+A simple library that translates the following utf-8/ascii characters <code>[a-zA-Z0-9&#96;~!@#$%^&*()-_=+[{]}\|;:'",<.>?]</code> into keystrokes for Windows computers using US standard keyboards.
+
+- ✅ Supports all ascii characters `[32, 127)` *(interval notation)* on US standard keyboards
+- ✅ Provides both short-hand and more performant variants of `to_keystrokes`
+- ✅ Uses a compile time map for optimal performance
+- ✅ Has range checks for incoming character values using `Result<T, E>`
+- ✅ Uses unit testing to ensure mapping validity
+
+Use this project for mapping keys in small projects with simple uses cases, this is not mean't for large professional and/or multi-languaged projects.
 
 ## Example Usage
 
