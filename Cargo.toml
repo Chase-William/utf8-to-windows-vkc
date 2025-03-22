@@ -11,3 +11,6 @@ categories = ["os", "os::windows-apis", "simulation"]
 exclude = [
     ".github/workflows/*"
 ]
+
+[dependencies]
+phf = { version = "0.11", default-features = false, features = ["macros"] }

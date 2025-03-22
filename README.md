@@ -3,26 +3,36 @@
 </p>
 
 <br/>
-<br/>
 
 ![Passing Status](https://github.com/Chase-William/utf8-to-windows-vkc/actions/workflows/build.yml/badge.svg)
 ![example workflow](https://github.com/Chase-William/utf8-to-windows-vkc/actions/workflows/test.yml/badge.svg)
 [![License](https://img.shields.io/github/license/Chase-William/utf8-to-windows-vkc?color=594ae2&logo=github&style=flat-square)](https://github.com/Chase-William/utf8-to-windows-vkc/blob/main/LICENSE)
-## Utf-8 String to Windows Virtual Key Codes
+## Utf-8 `&str` to Windows Virtual Key Codes
 
-A simple library that translates the following utf-8/ascii characters <code>[a-zA-Z0-9&#96;~!@#$%^&*()-_=+[{]}\|;:'",<.>?]</code> into keystrokes for Windows computers with no dependencies.
+A simple library that translates the following utf-8/ascii characters <code>[a-zA-Z0-9&#96;~!@#$%^&*()-_=+[{]}\|;:'",<.>?]</code> into keystrokes for Windows computers.
 
 ## Example Usage
 
 ```rs
-use utf8_to_windows_vkc::Utf8KeyMapper;
-
 fn main() {
-    let key_mapper = Utf8KeyMapper::new(); // create api structure
-    // unwrap keystrokes, returns error if map does not exists or invalid character
-    let r = key_mapper.to_keystrokes("Hello, World!").unwrap();
-    // Call your win32 implementation
-    send_keystrokes(&r);
+    // Receive a new collection
+    match utf8_to_windows_vkc::to_keystrokes_new("Hello, World!") {
+        // send keystrokes on successful map
+        Ok(keystrokes) => send_keystrokes(&keystrokes),
+        // print error on failure
+        Err(err ) => println!("Byte: {}, Error-Code: {:?}", err.byte, err.error_code)
+    }
+
+    // -- OR --
+
+    // Re-use an existing collection (it is your responsibility to clear when appropriate)
+    let mut keystrokes: Vec<u8> = Vec::new();
+    match utf8_to_windows_vkc::to_keystrokes_mut("Hello, World!", &mut keystrokes) {
+        // send keystrokes on successful map
+        Ok(()) => send_keystrokes(&keystrokes),
+        // print error on failure
+        Err(err ) => println!("Byte: {}, Error-Code: {:?}", err.byte, err.error_code)
+    }
 }
 ```
 
@@ -84,6 +94,11 @@ fn send_keystrokes(keys: &Vec<u8>) {
 }
 ```
 
+## About This Project
+
+This library's goal is to provide common translations while remaining independent of both the [windows](https://crates.io/crates/windows) and [winapi](https://crates.io/crates/winapi) crates. I understand there are tools available in both of these crates that could reduce much of this library's limited logic, however, that would undermine the objective of this project. Moreover, I do not want to create my own bindings to win32 using a _c_ foreign function interface.
+
+This library uses a compile-time map from the [phf](https://docs.rs/phf/latest/phf/).
 
 ## Translation Notes
 
