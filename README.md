@@ -17,7 +17,7 @@ A simple library that translates the following utf-8/ascii characters <code>[a-z
 - ✅ Has range checks for incoming character values using `Result<T, E>`
 - ✅ Uses unit testing to ensure mapping validity
 
-Use this project for mapping keys in small projects with simple uses cases, this is not mean't for large professional and/or multi-languaged projects.
+**Use this project for mapping keys in small projects with simple uses cases, this is not mean't for large professional and/or multi-languaged projects.**
 
 ## Example Usage
 
